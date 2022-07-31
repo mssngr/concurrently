@@ -1,0 +1,135 @@
+# import User from 'user.graphql'
+# import Activity from 'activity.graphql'
+# import Status from 'enums.graphql'
+
+type Team {
+  id: ID!
+  createdAtMs: Int!
+  updatedAtMs: Int!
+  isActive: Boolean!
+  name: String!
+  description: String
+
+  ### TEAMS ###
+  # Relationships
+  parentTeam: Team @relationship(type: "INCLUDES", direction: IN)
+  childTeams: [Team!] @relationship(type: "INCLUDES", direction: OUT)
+  # Queries
+  ancestorTeams: [Team!]
+    @cypher(
+      statement: """
+      MATCH (this)<-[:INCLUDES *0..]-(team:Team)
+      RETURN team
+      """
+    )
+  activeChildTeams: [Team!]
+    @cypher(
+      statement: """
+      MATCH (this)-[:INCLUDES]->(team:Team {isActive: true})
+      RETURN team
+      """
+    )
+  inactiveChildTeams: [Team!]
+    @cypher(
+      statement: """
+      MATCH (this)-[:INCLUDES]->(team:Team {isActive: false})
+      RETURN team
+      """
+    )
+  activeDescendantTeams: [Team!]
+    @cypher(
+      statement: """
+      MATCH (this)-[:INCLUDES *1..]->(team:Team {isActive: true})
+      RETURN team
+      """
+    )
+
+  ### USERS ###
+  # Relationships
+  admins: [User!]! @relationship(type: "ADMINISTERS", direction: IN)
+  members: [User!]! @relationship(type: "WORKS_ON", direction: IN)
+  subscribers: [User!] @relationship(type: "SUBSCRIBES_TO", direction: IN)
+  # Queries
+  activeInheritedAdmins: [User!]
+    @cypher(
+      statement: """
+      MATCH (this)<-[:OWNS *0..]-(team:Team)<-[:ADMINISTERS]-(admin:User {isActive: true})
+      RETURN admin
+      """
+    )
+  activeAdmins: [User!]!
+    @cypher(
+      statement: """
+      MATCH (this)<-[:ADMINISTERS]-(admin:User {isActive: true})
+      RETURN admin
+      """
+    )
+  activeMembers: [User!]!
+    @cypher(
+      statement: """
+      MATCH (this)<-[:WORKS_ON]-(member:User {isActive: true})
+      RETURN member
+      """
+    )
+  activeDescendantMembers: [User!]
+    @cypher(
+      statement: """
+      MATCH (this)-[:OWNS *1..]->(:Team {isActive: true})<-[:WORKS_ON]-(member:User {isActive: true})
+      RETURN member
+      """
+    )
+  activeInheritedSubscribers: [User!]
+    @cypher(
+      statement: """
+      MATCH (this)<-[:OWNS *1..]-(:Team {isActive: true})<-[:SUBSCRIBES_TO]-(subscriber:User {isActive: true})
+      RETURN subscriber
+      """
+    )
+  activeSubscribers: [User!]
+    @cypher(
+      statement: """
+      MATCH (this)<-[:SUBSCRIBES_TO]-(subscriber:User {isActive: true})
+      RETURN subscriber
+      """
+    )
+  activeDescendantSubscribers: [User!]
+    @cypher(
+      statement: """
+      MATCH (this)-[:OWNS *1..]->(:Team {isActive: true})<-[:SUBSCRIBES_TO]-(subscriber:User {isActive: true})
+      RETURN subscriber
+      """
+    )
+
+  ### ACTIVITIES ###
+  # Relationships
+  activities: [Activity!] @relationship(type: "OWNS", direction: OUT)
+  # Queries
+  activeInheritedActivities: [Activity!]
+    @cypher(
+      statement: """
+      MATCH (this)<-[:OWNS *1..]-(:Team)-[:OWNS]->(activity:Activity {isActive: true})
+      RETURN activity
+      """
+    )
+  activeActivities: [Activity!]
+    @cypher(
+      statement: """
+      MATCH (this)-[:OWNS]->(activity:Activity {isActive: true})
+      RETURN activity
+      """
+    )
+  inactiveActivities: [Activity!]
+    @cypher(
+      statement: """
+      MATCH (this)-[:OWNS]->(activity:Activity {isActive: false})
+      RETURN activity
+      """
+    )
+  activeDescendantActivities: [Activity!]
+    @cypher(
+      statement: """
+      MATCH (this)-[:OWNS *1..]->(:Team {isActive: true})-[:OWNS]->(activity:Activity {isActive: true})
+      RETURN activity
+      """
+    )
+}

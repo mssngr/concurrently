@@ -13,17 +13,73 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  teams    Team[]    @relation()
-  password Password?
-  notes    Note[]
+  teams              Team[]       @relation("teamMemberships")
+  ownedInitiatives   Initiative[] @relation("initiativeOwnerships")
+  ownedOrgs          Org[]        @relation("orgOwnerships")
+  ownedTeams         Team[]       @relation("teamOwnerships")
+  ownedProducts      Product[]    @relation("productOwnerships")
+  ownedProjects      Project[]    @relation("projectOwnerships")
+  ownedMilestones    Milestone[]  @relation("milestoneOwnerships")
+  ownedTasks         Task[]       @relation("taskOwnerships")
+  ownedActivities    Activity[]   @relation("activityOwnerships")
+  createdInitiatives Initiative[]
+  createdOrgs        Org[]
+  createdTeams       Team[]
+  createdProducts    Product[]
+  createdProjects    Project[]
+  createdMilestones  Milestone[]
+  createdTasks       Task[]
+  createdActivities  Activity[]
+  events             Event[]
+  notes              Note[]
+  password           Password?
 }
 
 model Password {
   hash      String
   createdAt DateTime @default(now())
 
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  userId String @unique
+  user   User   @relation(fields: [userID], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userID String @unique
+}
+
+model Initiative {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  name        String   @unique
+  description String?
+
+  creator            User         @relation(fields: [creatorID], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  creatorID          String
+  parentInitiative   Initiative?  @relation("initiativeInception", fields: [parentInitiativeID], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  parentInitiativeID String?
+  childInitiatives   Initiative[] @relation("initiativeInception")
+  owners             User[]       @relation("initiativeOwnerships")
+  orgs               Org[]
+  teams              Team[]
+  products           Product[]
+  projects           Project[]
+  tasks              Task[]
+}
+
+model Org {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  name        String   @unique
+  description String?
+
+  creator     User         @relation(fields: [creatorID], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  creatorID   String
+  parentOrg   Org?         @relation("orgInception", fields: [parentOrgID], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  parentOrgID String?
+  childOrgs   Org[]        @relation("orgInception")
+  owners      User[]       @relation("orgOwnerships")
+  initiatives Initiative[]
+  teams       Team[]
+  products    Product[]
+  projects    Project[]
 }
 
 model Team {
@@ -33,7 +89,117 @@ model Team {
   name        String   @unique
   description String?
 
-  users User[] @relation()
+  creator     User         @relation(fields: [creatorID], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  creatorID   String
+  org         Org?         @relation(fields: [orgID], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  orgID       String?
+  owners      User[]       @relation("teamOwnerships")
+  members     User[]       @relation("teamMemberships")
+  initiatives Initiative[]
+  products    Product[]
+  projects    Project[]
+  milestones  Milestone[]
+  tasks       Task[]
+  activities  Activity[]
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  name        String   @unique
+  description String?
+
+  creator         User         @relation(fields: [creatorID], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  creatorID       String
+  parentProduct   Product?     @relation("productInception", fields: [parentProductID], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  parentProductID String?
+  childProducts   Product[]    @relation("productInception")
+  owners          User[]       @relation("productOwnerships")
+  initiatives     Initiative[]
+  orgs            Org[]
+  teams           Team[]
+  projects        Project[]
+  milestones      Milestone[]
+  tasks           Task[]
+  activities      Activity[]
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  name        String
+  description String?
+
+  creator     User         @relation(fields: [creatorID], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  creatorID   String
+  owners      User[]       @relation("projectOwnerships")
+  initiatives Initiative[]
+  orgs        Org[]
+  teams       Team[]
+  products    Product[]
+  milestones  Milestone[]
+  tasks       Task[]
+}
+
+model Milestone {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  name        String
+  description String?
+
+  creator           User        @relation(fields: [creatorID], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  creatorID         String
+  project           Project     @relation(fields: [projectID], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  projectID         String
+  parentMilestone   Milestone?  @relation("milestoneInception", fields: [parentMilestoneID], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  parentMilestoneID String?
+  childMilestones   Milestone[] @relation("milestoneInception")
+  owners            User[]      @relation("milestoneOwnerships")
+  teams             Team[]
+  products          Product[]
+  tasks             Task[]
+}
+
+model Task {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  name        String
+  description String?
+
+  creator      User        @relation(fields: [creatorID], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  creatorID    String
+  team         Team?       @relation(fields: [teamID], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  teamID       String?
+  initiative   Initiative? @relation(fields: [initiativeID], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  initiativeID String?
+  product      Product?    @relation(fields: [productID], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  productID    String?
+  project      Project?    @relation(fields: [projectID], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  projectID    String?
+  milestone    Milestone?  @relation(fields: [milestoneID], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  milestoneID  String?
+  owners       User[]      @relation("taskOwnerships")
+  activities   Activity[]
+}
+
+model Activity {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  name        String
+  description String?
+
+  creator   User      @relation(fields: [creatorID], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  creatorID String
+  task      Task      @relation(fields: [taskID], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  taskID    String
+  owners    User[]    @relation("activityOwnerships")
+  teams     Team[]
+  products  Product[]
 }
 
 model Note {
@@ -44,6 +210,40 @@ model Note {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  userId String
+  user   User   @relation(fields: [userID], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userID String
+}
+
+model Event {
+  id        String    @id @default(cuid())
+  timestamp DateTime  @default(now())
+  type      EventType
+  model     Model
+  field     Field
+
+  user   User   @relation(fields: [userID], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userID String
+}
+
+enum EventType {
+  CREATION
+  UPDATE
+  DELETE
+}
+
+enum Model {
+  INITIATIVE
+  ORG
+  TEAM
+  PRODUCT
+  PROJECT
+  MILESTONE
+  TASK
+  ACTIVITY
+  COMMENT
+}
+
+enum Field {
+  NAME
+  DESCRIPTION
 }

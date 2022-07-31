@@ -43,8 +43,8 @@ export function getTeams({ userId }: { userId: User["id"] }) {
 //   });
 // }
 
-export function deleteNote({ id }: Pick<Team, "id">) {
-  return prisma.note.delete({
-    where: { id },
-  });
-}
+// export function deleteNote({ id }: Pick<Team, "id">) {
+//   return prisma.note.delete({
+//     where: { id },
+//   });
+// }

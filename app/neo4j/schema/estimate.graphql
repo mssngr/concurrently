@@ -1,0 +1,19 @@
+type Estimate {
+  id: ID!
+  createdAtMs: Int!
+  updatedAtMs: Int!
+  name: String!
+  value: Int!
+  unitOfMeasurement: String!
+  description: String
+
+  activities: [Activity!]
+    @relationship(type: "IS_ESTIMATED_TO_BE", direction: IN)
+  activeActivities: [Activity!]
+    @cypher(
+      statement: """
+      MATCH (this)<-[:IS_ESTIMATED_TO_BE]-(activity:Activity {isActive: true})
+      RETURN activity
+      """
+    )
+}

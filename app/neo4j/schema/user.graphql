@@ -1,0 +1,78 @@
+# import Team from 'team.graphql'
+# import Activity from 'activity.graphql'
+# import Status from 'enums.graphql'
+
+type User {
+  id: ID!
+  createdAtMs: Int!
+  updatedAtMs: Int!
+  email: String!
+  displayName: String!
+
+  ### TEAMS ###
+  # Relationships
+  administeredTeams: [Team!] @relationship(type: "ADMINISTERS", direction: OUT)
+  teams: [Team!] @relationship(type: "WORKS_ON", direction: IN)
+  # Queries
+  activeAdministeredTeams: [Team!]
+    @cypher(
+      statement: """
+      MATCH (this)-[:ADMINISTERS]->(team:Team {isActive: true})
+      RETURN team
+      """
+    )
+  activeAdministeredDescendantTeams: [Team!]
+    @cypher(
+      statement: """
+      MATCH (this)-[:ADMINISTERS]->(:Team {isActive: true})-[:INCLUDES]->(team:Team {isActive: true})
+      RETURN team
+      """
+    )
+  inactiveAdministeredTeams: [Team!]
+    @cypher(
+      statement: """
+      MATCH (this)-[:ADMINISTERS]->(team:Team {isActive: false})
+      RETURN team
+      """
+    )
+  activeInheritedTeams: [Team!]
+    @cypher(
+      statement: """
+      MATCH (this)-[:WORKS_ON]->(:Team {isActive: true})<-[:INCLUDES *1..]-(team: Team {isActive: true})
+      RETURN team
+      """
+    )
+  activeTeams: [Team!]
+    @cypher(
+      statement: """
+      MATCH (this)-[:WORKS_ON]->(team:Team {isActive: true})
+      RETURN team
+      """
+    )
+  inactiveTeams: [Team!]
+    @cypher(
+      statement: """
+      MATCH (this)-[:WORKS_ON]->(team:Team {isActive: false})
+      RETURN team
+      """
+    )
+
+  ### ACTIVITIES ###
+  # Relationships
+  ownedActivities: [Activity!] @relationship(type: "OWNS", direction: OUT)
+  # Queries
+  activeOwnedActivities: [Activity!]
+    @cypher(
+      statement: """
+      MATCH (this)-[:OWNS]->(activity:Activity {isActive: true})
+      RETURN activity
+      """
+    )
+  inactiveOwnedActivities: [Activity!]
+    @cypher(
+      statement: """
+      MATCH (this)-[:OWNS]->(activity:Activity {isActive: false})
+      RETURN activity
+      """
+    )
+}

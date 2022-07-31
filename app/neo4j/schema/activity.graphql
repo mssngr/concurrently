@@ -1,0 +1,42 @@
+# import Team from 'team.graphql'
+# import User from 'user.graphql'
+# import Estimate from 'estimate.graphql'
+# import Status from 'enums.graphql'
+
+type Activity {
+  id: ID!
+  createdAtMs: Int!
+  updatedAtMs: Int!
+  isActive: Boolean!
+  status: Status!
+  name: String!
+  description: String
+  priority: Int
+
+  ### MISC ###
+  # Relationships
+  owners: [Entity!]! @relationship(type: "OWNS", direction: IN)
+  estimate: Estimate @relationship(type: "IS_ESTIMATED_TO_BE", direction: OUT)
+
+  ### ACTIVITIES ###
+  # Relationships
+  parentActivity: Activity @relationship(type: "INCLUDES", direction: IN)
+  childActivities: [Activity!] @relationship(type: "INCLUDES", direction: OUT)
+  # Queries
+  activeChildActivities: [Activity!]
+    @cypher(
+      statement: """
+      MATCH (this)-[:INCLUDES]->(activity:Activity {isActive: true})
+      RETURN activity
+      """
+    )
+  inactiveChildActivities: [Activity!]
+    @cypher(
+      statement: """
+      MATCH (this)-[:INCLUDES]->(activity:Activity {isActive: false})
+      RETURN activity
+      """
+    )
+}
+
+union Entity = Team | User
