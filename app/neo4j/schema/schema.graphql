@@ -1,0 +1,8 @@
+# import Team from 'team.graphql'
+# import User from 'user.graphql'
+# import Activity from 'activity.graphql'
+# import Status from 'enums.graphql'
+
+type Query {
+  teams
+}

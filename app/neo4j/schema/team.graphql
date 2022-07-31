@@ -22,24 +22,17 @@ type Team {
       RETURN team
       """
     )
-  activeChildTeams: [Team!]
+  queryChildTeams(isActive: Boolean): [Team!]
     @cypher(
       statement: """
-      MATCH (this)-[:INCLUDES]->(team:Team {isActive: true})
+      MATCH (this)-[:INCLUDES]->(team:Team {isActive: $isActive})
       RETURN team
       """
     )
-  inactiveChildTeams: [Team!]
+  queryDescendantTeams(isActive: Boolean): [Team!]
     @cypher(
       statement: """
-      MATCH (this)-[:INCLUDES]->(team:Team {isActive: false})
-      RETURN team
-      """
-    )
-  activeDescendantTeams: [Team!]
-    @cypher(
-      statement: """
-      MATCH (this)-[:INCLUDES *1..]->(team:Team {isActive: true})
+      MATCH (this)-[:INCLUDES *1..]->(team:Team {isActive: $isActive})
       RETURN team
       """
     )
@@ -53,21 +46,21 @@ type Team {
   activeInheritedAdmins: [User!]
     @cypher(
       statement: """
-      MATCH (this)<-[:OWNS *0..]-(team:Team)<-[:ADMINISTERS]-(admin:User {isActive: true})
+      MATCH (this)<-[:OWNS *0..]-(team:Team {isActive: true})<-[:ADMINISTERS]-(admin:User {isActive: true})
       RETURN admin
       """
     )
-  activeAdmins: [User!]!
+  queryAdmins(isActive: Boolean): [User!]!
     @cypher(
       statement: """
-      MATCH (this)<-[:ADMINISTERS]-(admin:User {isActive: true})
+      MATCH (this)<-[:ADMINISTERS]-(admin:User {isActive: $isActive})
       RETURN admin
       """
     )
-  activeMembers: [User!]!
+  queryMembers(isActive: Boolean): [User!]!
     @cypher(
       statement: """
-      MATCH (this)<-[:WORKS_ON]-(member:User {isActive: true})
+      MATCH (this)<-[:WORKS_ON]-(member:User {isActive: $isActive})
       RETURN member
       """
     )
@@ -85,10 +78,10 @@ type Team {
       RETURN subscriber
       """
     )
-  activeSubscribers: [User!]
+  querySubscribers(isActive: Boolean): [User!]
     @cypher(
       statement: """
-      MATCH (this)<-[:SUBSCRIBES_TO]-(subscriber:User {isActive: true})
+      MATCH (this)<-[:SUBSCRIBES_TO]-(subscriber:User {isActive: $isActive})
       RETURN subscriber
       """
     )
@@ -107,21 +100,14 @@ type Team {
   activeInheritedActivities: [Activity!]
     @cypher(
       statement: """
-      MATCH (this)<-[:OWNS *1..]-(:Team)-[:OWNS]->(activity:Activity {isActive: true})
+      MATCH (this)<-[:OWNS *1..]-(:Team {isActive: true})-[:OWNS]->(activity:Activity {isActive: true})
       RETURN activity
       """
     )
-  activeActivities: [Activity!]
+  queryActivities(isActive: Boolean): [Activity!]
     @cypher(
       statement: """
-      MATCH (this)-[:OWNS]->(activity:Activity {isActive: true})
-      RETURN activity
-      """
-    )
-  inactiveActivities: [Activity!]
-    @cypher(
-      statement: """
-      MATCH (this)-[:OWNS]->(activity:Activity {isActive: false})
+      MATCH (this)-[:OWNS]->(activity:Activity {isActive: $isActive})
       RETURN activity
       """
     )

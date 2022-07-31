@@ -8,7 +8,7 @@ type Activity {
   createdAtMs: Int!
   updatedAtMs: Int!
   isActive: Boolean!
-  status: Status!
+  status: Status! @default(value: DRAFTED)
   name: String!
   description: String
   priority: Int
@@ -23,17 +23,10 @@ type Activity {
   parentActivity: Activity @relationship(type: "INCLUDES", direction: IN)
   childActivities: [Activity!] @relationship(type: "INCLUDES", direction: OUT)
   # Queries
-  activeChildActivities: [Activity!]
+  queryChildActivities(isActive: Boolean!): [Activity!]
     @cypher(
       statement: """
-      MATCH (this)-[:INCLUDES]->(activity:Activity {isActive: true})
-      RETURN activity
-      """
-    )
-  inactiveChildActivities: [Activity!]
-    @cypher(
-      statement: """
-      MATCH (this)-[:INCLUDES]->(activity:Activity {isActive: false})
+      MATCH (this)-[:INCLUDES]->(activity:Activity {isActive: $isActive})
       RETURN activity
       """
     )

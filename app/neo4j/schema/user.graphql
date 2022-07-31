@@ -14,10 +14,10 @@ type User {
   administeredTeams: [Team!] @relationship(type: "ADMINISTERS", direction: OUT)
   teams: [Team!] @relationship(type: "WORKS_ON", direction: IN)
   # Queries
-  activeAdministeredTeams: [Team!]
+  queryAdministeredTeams(isActive: Boolean): [Team!]
     @cypher(
       statement: """
-      MATCH (this)-[:ADMINISTERS]->(team:Team {isActive: true})
+      MATCH (this)-[:ADMINISTERS]->(team:Team {isActive: $isActive})
       RETURN team
       """
     )
@@ -28,13 +28,6 @@ type User {
       RETURN team
       """
     )
-  inactiveAdministeredTeams: [Team!]
-    @cypher(
-      statement: """
-      MATCH (this)-[:ADMINISTERS]->(team:Team {isActive: false})
-      RETURN team
-      """
-    )
   activeInheritedTeams: [Team!]
     @cypher(
       statement: """
@@ -42,17 +35,10 @@ type User {
       RETURN team
       """
     )
-  activeTeams: [Team!]
+  queryTeams(isActive: Boolean): [Team!]
     @cypher(
       statement: """
-      MATCH (this)-[:WORKS_ON]->(team:Team {isActive: true})
-      RETURN team
-      """
-    )
-  inactiveTeams: [Team!]
-    @cypher(
-      statement: """
-      MATCH (this)-[:WORKS_ON]->(team:Team {isActive: false})
+      MATCH (this)-[:WORKS_ON]->(team:Team {isActive: $isActive})
       RETURN team
       """
     )
@@ -61,17 +47,10 @@ type User {
   # Relationships
   ownedActivities: [Activity!] @relationship(type: "OWNS", direction: OUT)
   # Queries
-  activeOwnedActivities: [Activity!]
+  queryOwnedActivities(isActive: Boolean): [Activity!]
     @cypher(
       statement: """
-      MATCH (this)-[:OWNS]->(activity:Activity {isActive: true})
-      RETURN activity
-      """
-    )
-  inactiveOwnedActivities: [Activity!]
-    @cypher(
-      statement: """
-      MATCH (this)-[:OWNS]->(activity:Activity {isActive: false})
+      MATCH (this)-[:OWNS]->(activity:Activity {isActive: $isActive})
       RETURN activity
       """
     )
